@@ -7,6 +7,7 @@
 #@+<< imports >>
 #@+node:peckj.20130322085304.1439: ** << imports >>
 import Tkinter
+import tkFont
 #@-<< imports >>
 #@+others
 #@+node:peckj.20130322085304.1440: ** app class
@@ -16,10 +17,26 @@ class UnderwoodWriter(Tkinter.Tk):
   def __init__(self, parent):
     Tkinter.Tk.__init__(self, parent)
     self.parent = parent
-    self.theme = 'Light'
+    self.theme = None
     self.initialize()
   #@+node:peckj.20130322085304.1443: *3* initialize
   def initialize(self):
+    # set up the theme dictionaries
+    self.lighttheme = {
+      'editor_fg': 'gray23',
+      'editor_bg': 'seashell2',
+      'editor_insert': 'gray11',
+      'statusbar_fg': 'gray23',
+      'statusbar_bg': 'ivory3'
+    }
+    self.darktheme = {
+      'editor_fg': 'seashell2',
+      'editor_bg': 'gray11',
+      'editor_insert': 'seashell3',
+      'statusbar_fg': 'ivory3',
+      'statusbar_bg': 'gray23'
+    }
+    
     # use a grid layout manager
     self.grid()
     
@@ -29,10 +46,10 @@ class UnderwoodWriter(Tkinter.Tk):
     self.config(menu=self.menubar)
     
     # the text editor
-    self.editortext = Tkinter.Text(self, height=10, width=50, background='white')
+    # investigate setting a font
+    self.editortext = Tkinter.Text(self, height=30, width=80, padx=10, pady=10)
     self.editorscroll = Tkinter.Scrollbar(self)
     self.editortext.configure(yscrollcommand=self.editorscroll.set)
-    self.editortext.pack(side='left')
     self.editorscroll.grid(column=1,row=0, sticky='NS')
     self.editortext.grid(column=0, row=0, sticky='EWNS')
     self.editortext.bind("<BackSpace>", self.editor_backspace)
@@ -40,9 +57,9 @@ class UnderwoodWriter(Tkinter.Tk):
     
     # status label
     self.labelVariable = Tkinter.StringVar()
-    label = Tkinter.Label(self, textvariable=self.labelVariable, 
-                          anchor="w", fg="black", bg="grey")
-    label.grid(column=0, row=1, columnspan=2, sticky='EW')
+    self.statuslabel = Tkinter.Label(self, textvariable=self.labelVariable, 
+                          anchor="w")
+    self.statuslabel.grid(column=0, row=1, columnspan=2, sticky='EW')
     self.labelVariable.set(u"Hello")
     
     # enable resizing
@@ -56,6 +73,7 @@ class UnderwoodWriter(Tkinter.Tk):
     self.focus_on_editor()
     
     # apply theme
+    self.theme = self.lighttheme
     self.colorize_themes()
   #@+node:peckj.20130322085304.1447: *3* focus_on_editor
   def focus_on_editor(self):
@@ -63,25 +81,27 @@ class UnderwoodWriter(Tkinter.Tk):
   #@+node:peckj.20130322085304.1450: *3* themes
   #@+node:peckj.20130322085304.1451: *4* swap_themes
   def swap_themes(self):
-    if self.theme == 'Light':
-      self.theme = 'Dark'
+    if self.theme == self.lighttheme:
+      self.theme = self.darktheme
     else:
-      self.theme = 'Light'
+      self.theme = self.lighttheme
     self.colorize_themes()
   #@+node:peckj.20130322085304.1452: *4* colorize_themes
   def colorize_themes(self):
-    if self.theme == 'Light':
-      # apply light theme
-      self.editortext.configure(
-        background='white',
-        foreground='black'
-      )
-    else:
-      # apply dark theme
-      self.editortext.configure(
-        background='black',
-        foreground='white'
-      )
+    self.editortext.configure(
+      background=self.theme['editor_bg'],
+      foreground=self.theme['editor_fg'],
+      insertbackground=self.theme['editor_insert']
+    )
+    self.statuslabel.configure(
+      background=self.theme['statusbar_bg'],
+      foreground=self.theme['statusbar_fg']
+    )
+    # does not work...
+    self.menubar.configure(
+      background=self.theme['statusbar_bg'],
+      foreground=self.theme['statusbar_fg']
+    )
   #@+node:peckj.20130322085304.1444: *3* action listeners
   #@+node:peckj.20130322085304.1449: *4* editor_backspace
   def editor_backspace(self, event):
