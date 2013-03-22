@@ -10,64 +10,96 @@ import Tkinter
 #@-<< imports >>
 #@+others
 #@+node:peckj.20130322085304.1440: ** app class
-class simpleapp_tk(Tkinter.Tk):
+class UnderwoodWriter(Tkinter.Tk):
   #@+others
   #@+node:peckj.20130322085304.1442: *3* ctor
   def __init__(self, parent):
     Tkinter.Tk.__init__(self, parent)
     self.parent = parent
+    self.theme = 'Light'
     self.initialize()
   #@+node:peckj.20130322085304.1443: *3* initialize
   def initialize(self):
     # use a grid layout manager
     self.grid()
     
-    # entry textbox
-    self.entryVariable = Tkinter.StringVar()
-    self.entry = Tkinter.Entry(self, textvariable=self.entryVariable)
-    self.entry.grid(column=0, row=0, sticky='EW')
-    self.entry.bind("<Return>", self.OnPressEnter)
-    self.entryVariable.set(u"Enter text here.")
+    # the menubar
+    self.menubar = Tkinter.Menu(self)
+    self.menubar.add_command(label="Swap Theme", command=self.swap_themes)
+    self.config(menu=self.menubar)
     
-    # accept button
-    button = Tkinter.Button(self, text=u'Click me!', command=self.OnButtonClick)
-    button.grid(column=1, row=0)
+    # the text editor
+    self.editortext = Tkinter.Text(self, height=10, width=50, background='white')
+    self.editorscroll = Tkinter.Scrollbar(self)
+    self.editortext.configure(yscrollcommand=self.editorscroll.set)
+    self.editortext.pack(side='left')
+    self.editorscroll.grid(column=1,row=0, sticky='NS')
+    self.editortext.grid(column=0, row=0, sticky='EWNS')
+    self.editortext.bind("<BackSpace>", self.editor_backspace)
+    self.editortext.bind("<Key>", self.editor_keypress)
     
     # status label
     self.labelVariable = Tkinter.StringVar()
     label = Tkinter.Label(self, textvariable=self.labelVariable, 
-                          anchor="w", fg="white", bg="blue")
+                          anchor="w", fg="black", bg="grey")
     label.grid(column=0, row=1, columnspan=2, sticky='EW')
     self.labelVariable.set(u"Hello")
     
     # enable resizing
     self.grid_columnconfigure(0, weight=1) # resize column 0 when necessary
-    self.resizable(True, False) # horizontal resize only
+    self.grid_rowconfigure(0, weight=1) # resize row 0 when necessary
+    self.resizable(True, True) # resize both horizontal + vertical
     self.update()
-    self.geometry(self.geometry())
+    self.geometry(self.geometry()) # prevent window resizing itself
     
     # focusing
-    self.focus_on_entry()
-  #@+node:peckj.20130322085304.1447: *3* focus_on_entry
-  def focus_on_entry(self):
-    self.entry.focus_set()
-    self.entry.selection_range(0, Tkinter.END)
+    self.focus_on_editor()
+    
+    # apply theme
+    self.colorize_themes()
+  #@+node:peckj.20130322085304.1447: *3* focus_on_editor
+  def focus_on_editor(self):
+    self.editortext.focus_set()
+  #@+node:peckj.20130322085304.1450: *3* themes
+  #@+node:peckj.20130322085304.1451: *4* swap_themes
+  def swap_themes(self):
+    if self.theme == 'Light':
+      self.theme = 'Dark'
+    else:
+      self.theme = 'Light'
+    self.colorize_themes()
+  #@+node:peckj.20130322085304.1452: *4* colorize_themes
+  def colorize_themes(self):
+    if self.theme == 'Light':
+      # apply light theme
+      self.editortext.configure(
+        background='white',
+        foreground='black'
+      )
+    else:
+      # apply dark theme
+      self.editortext.configure(
+        background='black',
+        foreground='white'
+      )
   #@+node:peckj.20130322085304.1444: *3* action listeners
-  #@+node:peckj.20130322085304.1445: *4* OnButtonClick
-  def OnButtonClick(self):
-    self.labelVariable.set(self.entryVariable.get() + " (button clicked)")
-    self.focus_on_entry()
-  #@+node:peckj.20130322085304.1446: *4* OnPressEnter
-  def OnPressEnter(self, event):
-    self.labelVariable.set(self.entryVariable.get() + " (enter pressed)")
-    self.focus_on_entry()
+  #@+node:peckj.20130322085304.1449: *4* editor_backspace
+  def editor_backspace(self, event):
+    print "backspace pressed." # debugging
+    # to do: prevent edits further than 10 characters back
+  #@+node:peckj.20130322085304.1453: *4* editor_keypress
+  def editor_keypress(self, event):
+    # update markers
+    # update status bar
+    # etc
+    pass
   #@-others
     
   
 #@+node:peckj.20130322085304.1441: ** __main__
 if __name__ == "__main__":
-  app = simpleapp_tk(None)
-  app.title('My application')
+  app = UnderwoodWriter(None)
+  app.title('Underwood Writer')
   app.mainloop()
 #@-others
 #@-leo

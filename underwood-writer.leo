@@ -10,8 +10,8 @@
 <preferences/>
 <find_panel_settings/>
 <vnodes>
-<v t="peckj.20130322085304.1435"
-expanded="peckj.20130322085304.1440,peckj.20130322085304.1444,"><vh>@file underwood.py</vh></v>
+<v t="peckj.20130322085304.1435" a="E"
+expanded="peckj.20130322085304.1440,peckj.20130322085304.1450,peckj.20130322085304.1444,"><vh>@file underwood.py</vh></v>
 <v t="peckj.20130322085304.1448"><vh>@file setup.py</vh></v>
 </vnodes>
 <tnodes>
