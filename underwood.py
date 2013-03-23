@@ -50,6 +50,7 @@ class UnderwoodWriter(Tkinter.Tk):
     self.editortext = Tkinter.Text(self, height=30, width=80, padx=10, pady=10)
     self.editorscroll = Tkinter.Scrollbar(self)
     self.editortext.configure(yscrollcommand=self.editorscroll.set)
+    self.editorscroll.configure(command=self.editortext.yview)
     self.editorscroll.grid(column=1,row=0, sticky='NS')
     self.editortext.grid(column=0, row=0, sticky='EWNS')
     self.editortext.bind("<BackSpace>", self.editor_backspace)
@@ -98,6 +99,10 @@ class UnderwoodWriter(Tkinter.Tk):
       foreground=self.theme['statusbar_fg']
     )
     # does not work...
+    self.editorscroll.configure(
+      background=self.theme['statusbar_bg'],
+      activebackground=self.theme['statusbar_fg']
+    )
     self.menubar.configure(
       background=self.theme['statusbar_bg'],
       foreground=self.theme['statusbar_fg']
