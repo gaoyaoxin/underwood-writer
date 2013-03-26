@@ -10,7 +10,12 @@
 <preferences/>
 <find_panel_settings/>
 <vnodes>
-<v t="peckj.20130322085304.1435" a="E"
+<v t="peckj.20130326132404.1463" a="E"><vh>To Do</vh>
+<v t="peckj.20130326132404.1464"><vh>File loading/saving</vh></v>
+<v t="peckj.20130326132404.1465"><vh>Configuration (drop a .rc in to ~?)</vh></v>
+<v t="peckj.20130326132404.1466"><vh>Character insertion - wrap</vh></v>
+</v>
+<v t="peckj.20130322085304.1435"
 expanded="peckj.20130322085304.1440,peckj.20130322085304.1444,"><vh>@file underwood.py</vh></v>
 <v t="peckj.20130322085304.1448"><vh>@file setup.py</vh></v>
 <v t="peckj.20130322085304.1458" a="E"><vh>scripts (ctrl+b to run)</vh>
@@ -122,5 +127,9 @@ for f in tkFont.families():
   g.es(f)
 </t>
 <t tx="peckj.20130322085304.1458"></t>
+<t tx="peckj.20130326132404.1463"></t>
+<t tx="peckj.20130326132404.1464"></t>
+<t tx="peckj.20130326132404.1465"></t>
+<t tx="peckj.20130326132404.1466"></t>
 </tnodes>
 </leo_file>
