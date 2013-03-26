@@ -8,6 +8,7 @@
 #@+node:peckj.20130322085304.1439: ** << imports >>
 import Tkinter
 import tkFont
+import string
 #@-<< imports >>
 #@+others
 #@+node:peckj.20130322085304.1440: ** app class
@@ -18,9 +19,27 @@ class UnderwoodWriter(Tkinter.Tk):
     Tkinter.Tk.__init__(self, parent)
     self.parent = parent
     self.theme = None
+    self.counts = None
+    self.endpos = None
+    self.printablechars = None
+    self.editiablechars = None
     self.initialize()
+
+
   #@+node:peckj.20130322085304.1443: *3* initialize
   def initialize(self):
+    # set up printable chars (ugly, find a better way)
+    self.printablechars = string.printable.replace('\t\n\r\x0b\x0c', '')
+    
+    # set up end position
+    self.endpos = (1, 0)
+    
+    # set up editable chars
+    self.editablechars = 10
+    
+    # set up initial counts
+    self.counts = {'chars': 0, 'words': 0, 'lines': 0}
+      
     # set up the theme dictionaries
     self.lighttheme = {
       'editor_fg': 'gray23',
@@ -55,13 +74,22 @@ class UnderwoodWriter(Tkinter.Tk):
     self.editortext.grid(column=0, row=0, sticky='EWNS')
     self.editortext.bind("<BackSpace>", self.editor_backspace)
     self.editortext.bind("<Key>", self.editor_keypress)
+    self.editortext.bind("<Button-1>", self.editor_click)
+    self.editortext.bind("<Button-2>", self.editor_click)
+    self.editortext.bind("<Button-3>", self.editor_click)
+    self.editortext.bind("<B1-Motion>", self.editor_click)
+    self.editortext.bind("<B2-Motion>", self.editor_click)
+    self.editortext.bind("<B3-Motion>", self.editor_click)
+    self.editortext.bind("<ButtonRelease-1>", self.editor_click)
+    self.editortext.bind("<ButtonRelease-2>", self.editor_click)
+    self.editortext.bind("<ButtonRelease-3>", self.editor_click)
     
     # status label
     self.labelVariable = Tkinter.StringVar()
     self.statuslabel = Tkinter.Label(self, textvariable=self.labelVariable, 
                           anchor="w")
     self.statuslabel.grid(column=0, row=1, columnspan=2, sticky='EW')
-    self.labelVariable.set(u"Hello")
+    self.set_statuslabel()
     
     # enable resizing
     self.grid_columnconfigure(0, weight=1) # resize column 0 when necessary
@@ -74,11 +102,25 @@ class UnderwoodWriter(Tkinter.Tk):
     self.focus_on_editor()
     
     # apply theme
-    self.theme = self.lighttheme
+    self.theme = self.darktheme
     self.colorize_themes()
   #@+node:peckj.20130322085304.1447: *3* focus_on_editor
   def focus_on_editor(self):
     self.editortext.focus_set()
+  #@+node:peckj.20130326125409.1460: *3* update_counts
+  def update_counts(self):
+    content = self.editortext.get(1.0, Tkinter.END)
+    self.counts['chars'] = len(content)
+    self.counts['lines'] = content.count('\n')
+    self.counts['words'] = len(content.split())
+    
+  #@+node:peckj.20130326125409.1461: *3* set_statuslabel
+  def set_statuslabel(self):
+    (row, column) = self.editortext.index(Tkinter.INSERT).split('.')
+    slabel = u"%s characters | %s words | %s lines | %s:%s" % (
+             self.counts['chars'], self.counts['words'], 
+             self.counts['lines'], row, column)
+    self.labelVariable.set(slabel)
   #@+node:peckj.20130322085304.1450: *3* themes
   #@+node:peckj.20130322085304.1451: *4* swap_themes
   def swap_themes(self):
@@ -110,14 +152,48 @@ class UnderwoodWriter(Tkinter.Tk):
   #@+node:peckj.20130322085304.1444: *3* action listeners
   #@+node:peckj.20130322085304.1449: *4* editor_backspace
   def editor_backspace(self, event):
-    print "backspace pressed." # debugging
-    # to do: prevent edits further than 10 characters back
+    # prevent edits further than 10 characters back
+    currpos = self.editortext.index(Tkinter.INSERT)
+    delpos = "%s.%s" % self.endpos
+    delpos = self.editortext.index(delpos)
+    if self.editortext.compare(currpos, ">", delpos):
+      # allow deletion
+      self.editortext.delete(currpos + '-1c')
+    
+    # update status bar
+    self.update_counts()
+    self.set_statuslabel()
+    
+    return 'break' # disable further handling
   #@+node:peckj.20130322085304.1453: *4* editor_keypress
   def editor_keypress(self, event):
+    # insert character (wrapping at 72 chars per line, auto hyphenating maybe?)
+    if event.char in self.printablechars:
+      self.editortext.insert(Tkinter.END, event.char)
+    elif event.char == '\n' or event.char == '\r':
+      self.editortext.insert(Tkinter.END, '\n')
+    elif event.char == '\t':
+      self.editortext.insert(Tkinter.END, ' ')
+    
     # update markers
+    newpos = "%s-%sc" % (self.editortext.index(Tkinter.END), self.editablechars + 1)
+    newpos = self.editortext.index(newpos)
+    newpos = map(lambda x: int(x), newpos.split('.'))
+    if newpos[0] > self.endpos[0] or (
+       newpos[1] > self.endpos[1] and newpos[0] >= self.endpos[0]):
+      self.endpos = (newpos[0], newpos[1])
+    
     # update status bar
-    # etc
-    pass
+    self.update_counts()
+    self.set_statuslabel()
+    # 
+    return 'break'
+  #@+node:peckj.20130326132404.1462: *4* editor_click
+  def editor_click(self, event):
+    # set cursor to the end of the text widget
+    end = self.editortext.index(Tkinter.END)
+    self.editortext.mark_set(Tkinter.INSERT, end)
+    return 'break'
   #@-others
     
   
