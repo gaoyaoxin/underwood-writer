@@ -38,7 +38,7 @@ class UnderwoodWriter(Tkinter.Tk):
     self.editablechars = 10
     
     # set up initial counts
-    self.counts = {'chars': 0, 'words': 0, 'lines': 0}
+    self.counts = {'chars': 0, 'words': 0, 'lines': 1}
       
     # set up the theme dictionaries
     self.lighttheme = {
@@ -110,17 +110,26 @@ class UnderwoodWriter(Tkinter.Tk):
   #@+node:peckj.20130326125409.1460: *3* update_counts
   def update_counts(self):
     content = self.editortext.get(1.0, Tkinter.END)
-    self.counts['chars'] = len(content)
+    self.counts['chars'] = len(content) - 1
     self.counts['lines'] = content.count('\n')
     self.counts['words'] = len(content.split())
     
   #@+node:peckj.20130326125409.1461: *3* set_statuslabel
   def set_statuslabel(self):
     (row, column) = self.editortext.index(Tkinter.INSERT).split('.')
-    slabel = u"%s characters | %s words | %s lines | %s:%s" % (
-             self.counts['chars'], self.counts['words'], 
-             self.counts['lines'], row, column)
+    deletable = len(self.editortext.get("%s.%s" % self.endpos, Tkinter.INSERT))
+    chars = self.plural('character', self.counts['chars'])
+    words = self.plural('word', self.counts['words'])
+    lines = self.plural('line', self.counts['lines'])
+    
+    slabel = u"%s | %s | %s | %s:%s (%s)" % (chars, words, lines, 
+                                             row, column, deletable)
     self.labelVariable.set(slabel)
+  #@+node:peckj.20130326132404.1468: *3* plural
+  def plural(self, word, count):
+    if count != 1:
+      word += 's'
+    return "%s %s" % (count, word)
   #@+node:peckj.20130322085304.1450: *3* themes
   #@+node:peckj.20130322085304.1451: *4* swap_themes
   def swap_themes(self):

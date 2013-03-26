@@ -15,10 +15,10 @@
 <v t="peckj.20130326132404.1465"><vh>Configuration (drop a .rc in to ~?)</vh></v>
 <v t="peckj.20130326132404.1466"><vh>Character insertion - wrap</vh></v>
 </v>
-<v t="peckj.20130322085304.1435"
+<v t="peckj.20130322085304.1435" a="E"
 expanded="peckj.20130322085304.1440,peckj.20130322085304.1444,"><vh>@file underwood.py</vh></v>
 <v t="peckj.20130322085304.1448"><vh>@file setup.py</vh></v>
-<v t="peckj.20130322085304.1458" a="E"><vh>scripts (ctrl+b to run)</vh>
+<v t="peckj.20130322085304.1458"><vh>scripts (ctrl+b to run)</vh>
 <v t="peckj.20130322085304.1455"><vh>color chart</vh></v>
 <v t="peckj.20130322085304.1457"><vh>print font families</vh></v>
 </v>
