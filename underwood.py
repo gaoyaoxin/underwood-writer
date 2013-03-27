@@ -77,8 +77,15 @@ class UnderwoodWriter(Tkinter.Tk):
     
     # the menubar
     self.menubar = Tkinter.Menu(self)
-    self.menubar.add_command(label="Swap Theme", command=self.swap_themes)
-    self.menubar.add_command(label="Load File", command=self.load_file)
+    filemenu = Tkinter.Menu(self.menubar, tearoff=False)
+    self.menubar.add_cascade(label="File", menu=filemenu)
+    filemenu.add_command(label="New File...", command=self.new_file, accelerator="Ctrl+N")
+    filemenu.add_command(label="Open File...", command=self.load_file, accelerator="Ctrl+O")
+    filemenu.add_command(label="Save File", command=self.save_file, accelerator="Ctrl+S")
+    filemenu.add_command(label="Save File As...", command=self.save_file_as)
+    settingsmenu = Tkinter.Menu(self.menubar, tearoff=False)
+    self.menubar.add_cascade(label="Settings", menu=settingsmenu)
+    settingsmenu.add_command(label="Swap Theme", command=self.swap_themes, accelerator="Ctrl+T")
     self.config(menu=self.menubar)
     
     # the text editor
@@ -100,6 +107,14 @@ class UnderwoodWriter(Tkinter.Tk):
     self.editortext.bind("<ButtonRelease-1>", self.editor_click)
     self.editortext.bind("<ButtonRelease-2>", self.editor_click)
     self.editortext.bind("<ButtonRelease-3>", self.editor_click)
+    self.editortext.bind("<Control-s>", self.save_file)
+    self.editortext.bind("<Command-s>", self.save_file)
+    self.editortext.bind("<Control-n>", self.new_file)
+    self.editortext.bind("<Command-n>", self.new_file)
+    self.editortext.bind("<Control-o>", self.load_file)
+    self.editortext.bind("<Command-o>", self.load_file)
+    self.editortext.bind("<Control-t>", self.swap_themes)
+    self.editortext.bind("<Command-t>", self.swap_themes)
     
     # status label
     self.labelVariable = Tkinter.StringVar()
@@ -153,7 +168,7 @@ class UnderwoodWriter(Tkinter.Tk):
   def update_title(self):
     titlestring = 'Underwood Writer'
     if self.filename is not None:
-      titlestring += ' - %s' % self.filename
+      titlestring += ' - %s' % os.path.split(self.filename)[1]
     if self.unsaved:
       titlestring = '*%s' % titlestring
     self.title(titlestring)
@@ -175,7 +190,7 @@ class UnderwoodWriter(Tkinter.Tk):
     return "%s %s" % (count, word)
   #@+node:peckj.20130322085304.1450: *3* themes
   #@+node:peckj.20130322085304.1451: *4* swap_themes
-  def swap_themes(self):
+  def swap_themes(self, event=None):
     if self.theme == self.lighttheme:
       self.theme = self.darktheme
     else:
@@ -202,21 +217,44 @@ class UnderwoodWriter(Tkinter.Tk):
       foreground=self.theme['statusbar_fg']
     )
   #@+node:peckj.20130327100701.1477: *3* file operations
+  #@+node:peckj.20130327100701.1494: *4* new_file
+  def new_file(self, event=None):
+    self.file_opt['title'] = 'New file...'
+    self.filename = tkFileDialog.asksaveasfilename(**self.file_opt)
+    self.editortext.delete(1.0, Tkinter.END)
+    self.unsaved = True
+    self.update_title()
   #@+node:peckj.20130327100701.1478: *4* load_file
-  def load_file(self):
+  def load_file(self, event=None):
     self.file_opt['title'] = 'Load file...'
     f = tkFileDialog.askopenfile(mode='rb', **self.file_opt)
     self.editortext.delete(1.0, Tkinter.END)
     self.editortext.insert(Tkinter.END, f.read())
     f.close()
     self.editortext.see(Tkinter.END)
-    self.filename = os.path.split(f.name)[1]
+    self.filename = f.name
     self.update_marker()
     self.update_counts()
     self.update_title()
     self.set_statuslabel()
   #@+node:peckj.20130327100701.1479: *4* save_file
+  def save_file(self, event=None):
+    if self.filename is None:
+      self.save_file_as()
+    else:
+      self.write_file()
   #@+node:peckj.20130327100701.1480: *4* save_file_as
+  def save_file_as(self):
+    self.file_opt['title'] = 'Save file as...'
+    self.filename = tkFileDialog.asksaveasfilename(**self.file_opt)
+    self.write_file()
+  #@+node:peckj.20130327100701.1491: *4* write_file
+  def write_file(self):
+    f = open(self.filename, 'wb')
+    f.write(self.editortext.get(1.0, Tkinter.INSERT))
+    f.close()
+    self.unsaved = False
+    self.update_title()
   #@+node:peckj.20130322085304.1444: *3* action listeners
   #@+node:peckj.20130322085304.1449: *4* editor_backspace
   def editor_backspace(self, event):
@@ -227,10 +265,13 @@ class UnderwoodWriter(Tkinter.Tk):
     if self.editortext.compare(currpos, ">", delpos):
       # allow deletion
       self.editortext.delete(currpos + '-1c')
+      self.unsaved = True
     
     # update status bar
     self.update_counts()
     self.set_statuslabel()
+    # update title
+    self.update_title()
     
     return 'break' # disable further handling
   #@+node:peckj.20130322085304.1453: *4* editor_keypress
@@ -239,14 +280,15 @@ class UnderwoodWriter(Tkinter.Tk):
     col = int(self.editortext.index(Tkinter.INSERT).split('.')[1])
     if col == 72:
       self.editortext.insert(Tkinter.END, '\n')
-    if event.char in self.printablechars:
+    if event.char in self.printablechars and len(event.char) > 0:
       self.editortext.insert(Tkinter.END, event.char)
+      self.unsaved = True
     elif event.char == '\n' or event.char == '\r':
       self.editortext.insert(Tkinter.END, '\n')
+      self.unsaved = True
     elif event.char == '\t':
       self.editortext.insert(Tkinter.END, ' ')
-    
-    self.unsaved = True
+      self.unsaved = True
     
     # update markers
     self.update_marker()
