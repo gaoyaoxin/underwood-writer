@@ -96,7 +96,7 @@ class UnderwoodWriter(Tkinter.Tk):
     self.set_statuslabel()
     
     # enable resizing
-    self.grid_columnconfigure(0, weight=1, minsize=80) # resize column 0 when necessary
+    self.grid_columnconfigure(0, weight=1) # resize column 0 when necessary
     self.grid_rowconfigure(0, weight=1) # resize row 0 when necessary
     self.resizable(True, True) # resize both horizontal + vertical
     self.update()
@@ -192,7 +192,6 @@ class UnderwoodWriter(Tkinter.Tk):
   def editor_keypress(self, event):
     # insert character (wrapping at 72 chars per line, auto hyphenating maybe?)
     col = int(self.editortext.index(Tkinter.INSERT).split('.')[1])
-    print col
     if col == 72:
       self.editortext.insert(Tkinter.END, '\n')
     if event.char in self.printablechars:
