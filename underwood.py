@@ -8,6 +8,7 @@
 #@+node:peckj.20130322085304.1439: ** << imports >>
 import Tkinter
 import tkFont
+import tkFileDialog
 import string
 import os
 #@-<< imports >>
@@ -24,7 +25,9 @@ class UnderwoodWriter(Tkinter.Tk):
     self.endpos = None
     self.printablechars = None
     self.editiablechars = None
-    self.title('Underwood Writer')
+    self.filename = None
+    self.unsaved = False
+    self.update_title()
     self.set_up_icon()
     self.initialize()
 
@@ -43,6 +46,15 @@ class UnderwoodWriter(Tkinter.Tk):
     
     # set up initial counts
     self.counts = {'chars': 0, 'words': 0, 'lines': 1}
+    
+    # set up file options
+    self.file_opt = options = {}
+    options['defaultextension'] = '.txt'
+    options['filetypes'] = [('text files', '.txt')]
+    options['initialdir'] = os.getcwd()
+    options['initialfile'] = 'myfile.txt'
+    options['parent'] = self
+    options['title'] = 'This is a title'
       
     # set up the theme dictionaries
     self.lighttheme = {
@@ -66,6 +78,7 @@ class UnderwoodWriter(Tkinter.Tk):
     # the menubar
     self.menubar = Tkinter.Menu(self)
     self.menubar.add_command(label="Swap Theme", command=self.swap_themes)
+    self.menubar.add_command(label="Load File", command=self.load_file)
     self.config(menu=self.menubar)
     
     # the text editor
@@ -136,6 +149,22 @@ class UnderwoodWriter(Tkinter.Tk):
                                              row, column, deletable)
     self.labelVariable.set(slabel)
   #@+node:peckj.20130327100701.1472: *3* helpers
+  #@+node:peckj.20130327100701.1482: *4* update_title
+  def update_title(self):
+    titlestring = 'Underwood Writer'
+    if self.filename is not None:
+      titlestring += ' - %s' % self.filename
+    if self.unsaved:
+      titlestring = '*%s' % titlestring
+    self.title(titlestring)
+  #@+node:peckj.20130327100701.1481: *4* update_marker
+  def update_marker(self):
+    newpos = "%s-%sc" % (self.editortext.index(Tkinter.END), self.editablechars + 1)
+    newpos = self.editortext.index(newpos)
+    newpos = map(lambda x: int(x), newpos.split('.'))
+    if newpos[0] > self.endpos[0] or (
+       newpos[1] > self.endpos[1] and newpos[0] >= self.endpos[0]):
+      self.endpos = (newpos[0], newpos[1])
   #@+node:peckj.20130322085304.1447: *4* focus_on_editor
   def focus_on_editor(self):
     self.editortext.focus_set()
@@ -172,6 +201,22 @@ class UnderwoodWriter(Tkinter.Tk):
       background=self.theme['statusbar_bg'],
       foreground=self.theme['statusbar_fg']
     )
+  #@+node:peckj.20130327100701.1477: *3* file operations
+  #@+node:peckj.20130327100701.1478: *4* load_file
+  def load_file(self):
+    self.file_opt['title'] = 'Load file...'
+    f = tkFileDialog.askopenfile(mode='rb', **self.file_opt)
+    self.editortext.delete(1.0, Tkinter.END)
+    self.editortext.insert(Tkinter.END, f.read())
+    f.close()
+    self.editortext.see(Tkinter.END)
+    self.filename = os.path.split(f.name)[1]
+    self.update_marker()
+    self.update_counts()
+    self.update_title()
+    self.set_statuslabel()
+  #@+node:peckj.20130327100701.1479: *4* save_file
+  #@+node:peckj.20130327100701.1480: *4* save_file_as
   #@+node:peckj.20130322085304.1444: *3* action listeners
   #@+node:peckj.20130322085304.1449: *4* editor_backspace
   def editor_backspace(self, event):
@@ -201,18 +246,17 @@ class UnderwoodWriter(Tkinter.Tk):
     elif event.char == '\t':
       self.editortext.insert(Tkinter.END, ' ')
     
+    self.unsaved = True
+    
     # update markers
-    newpos = "%s-%sc" % (self.editortext.index(Tkinter.END), self.editablechars + 1)
-    newpos = self.editortext.index(newpos)
-    newpos = map(lambda x: int(x), newpos.split('.'))
-    if newpos[0] > self.endpos[0] or (
-       newpos[1] > self.endpos[1] and newpos[0] >= self.endpos[0]):
-      self.endpos = (newpos[0], newpos[1])
+    self.update_marker()
     
     # update status bar
     self.update_counts()
     self.set_statuslabel()
-    # 
+    # update title
+    self.update_title()
+    
     return 'break'
   #@+node:peckj.20130326132404.1462: *4* editor_click
   def editor_click(self, event):
