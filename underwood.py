@@ -191,6 +191,10 @@ class UnderwoodWriter(Tkinter.Tk):
   #@+node:peckj.20130322085304.1453: *4* editor_keypress
   def editor_keypress(self, event):
     # insert character (wrapping at 72 chars per line, auto hyphenating maybe?)
+    col = int(self.editortext.index(Tkinter.INSERT).split('.')[1])
+    print col
+    if col == 72:
+      self.editortext.insert(Tkinter.end, '\n')
     if event.char in self.printablechars:
       self.editortext.insert(Tkinter.END, event.char)
     elif event.char == '\n' or event.char == '\r':
