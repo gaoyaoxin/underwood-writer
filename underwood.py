@@ -9,6 +9,7 @@
 import Tkinter
 import tkFont
 import string
+import os
 #@-<< imports >>
 #@+others
 #@+node:peckj.20130322085304.1440: ** app class
@@ -23,10 +24,13 @@ class UnderwoodWriter(Tkinter.Tk):
     self.endpos = None
     self.printablechars = None
     self.editiablechars = None
+    self.title('Underwood Writer')
+    self.set_up_icon()
     self.initialize()
 
 
-  #@+node:peckj.20130322085304.1443: *3* initialize
+  #@+node:peckj.20130327100701.1474: *3* initialization code
+  #@+node:peckj.20130322085304.1443: *4* initialize
   def initialize(self):
     # set up printable chars (ugly, find a better way)
     self.printablechars = string.printable.replace('\t\n\r\x0b\x0c', '')
@@ -104,17 +108,23 @@ class UnderwoodWriter(Tkinter.Tk):
     # apply theme
     self.theme = self.darktheme
     self.colorize_themes()
-  #@+node:peckj.20130322085304.1447: *3* focus_on_editor
-  def focus_on_editor(self):
-    self.editortext.focus_set()
-  #@+node:peckj.20130326125409.1460: *3* update_counts
+  #@+node:peckj.20130327100701.1475: *4* set_up_icon
+  def set_up_icon(self):
+    iconName = os.path.join(os.getcwd(), 'underwood.gif')
+    try:
+      img = Tkinter.PhotoImage(file=iconName)
+      self.call('wm', 'iconphoto', self._w, img)
+    except:
+      pass # error loading icon, but it's not a deal breaker
+  #@+node:peckj.20130327100701.1473: *3* status bar
+  #@+node:peckj.20130326125409.1460: *4* update_counts
   def update_counts(self):
     content = self.editortext.get(1.0, Tkinter.END)
     self.counts['chars'] = len(content) - 1
     self.counts['lines'] = content.count('\n')
     self.counts['words'] = len(content.split())
     
-  #@+node:peckj.20130326125409.1461: *3* set_statuslabel
+  #@+node:peckj.20130326125409.1461: *4* set_statuslabel
   def set_statuslabel(self):
     (row, column) = self.editortext.index(Tkinter.INSERT).split('.')
     deletable = len(self.editortext.get("%s.%s" % self.endpos, Tkinter.INSERT))
@@ -125,7 +135,11 @@ class UnderwoodWriter(Tkinter.Tk):
     slabel = u"%s | %s | %s | %s:%s (%s)" % (chars, words, lines, 
                                              row, column, deletable)
     self.labelVariable.set(slabel)
-  #@+node:peckj.20130326132404.1468: *3* plural
+  #@+node:peckj.20130327100701.1472: *3* helpers
+  #@+node:peckj.20130322085304.1447: *4* focus_on_editor
+  def focus_on_editor(self):
+    self.editortext.focus_set()
+  #@+node:peckj.20130326132404.1468: *4* plural
   def plural(self, word, count):
     if count != 1:
       word += 's'
@@ -209,7 +223,6 @@ class UnderwoodWriter(Tkinter.Tk):
 #@+node:peckj.20130322085304.1441: ** __main__
 if __name__ == "__main__":
   app = UnderwoodWriter(None)
-  app.title('Underwood Writer')
   app.mainloop()
 #@-others
 #@-leo
