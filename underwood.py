@@ -11,6 +11,7 @@ import tkFont
 import tkFileDialog
 import string
 import os
+import sys
 #@-<< imports >>
 #@+others
 #@+node:peckj.20130322085304.1440: ** app class
@@ -79,13 +80,22 @@ class UnderwoodWriter(Tkinter.Tk):
     self.menubar = Tkinter.Menu(self)
     filemenu = Tkinter.Menu(self.menubar, tearoff=False)
     self.menubar.add_cascade(label="File", menu=filemenu)
-    filemenu.add_command(label="New File...", command=self.new_file, accelerator="Ctrl+N")
-    filemenu.add_command(label="Open File...", command=self.load_file, accelerator="Ctrl+O")
-    filemenu.add_command(label="Save File", command=self.save_file, accelerator="Ctrl+S")
-    filemenu.add_command(label="Save File As...", command=self.save_file_as)
     settingsmenu = Tkinter.Menu(self.menubar, tearoff=False)
     self.menubar.add_cascade(label="Settings", menu=settingsmenu)
-    settingsmenu.add_command(label="Swap Theme", command=self.swap_themes, accelerator="Ctrl+T")
+    if sys.platform == 'darwin':
+      # mac stuff here
+      filemenu.add_command(label="New File...", command=self.new_file, accelerator="Command+N")
+      filemenu.add_command(label="Open File...", command=self.load_file, accelerator="Command+O")
+      filemenu.add_command(label="Save File", command=self.save_file, accelerator="Command+S")
+      filemenu.add_command(label="Save File As...", command=self.save_file_as)
+      settingsmenu.add_command(label="Swap Theme", command=self.swap_themes, accelerator="Command+T")
+    else:
+      # windows/linux stuff here
+      filemenu.add_command(label="New File...", command=self.new_file, accelerator="Ctrl+N")
+      filemenu.add_command(label="Open File...", command=self.load_file, accelerator="Ctrl+O")
+      filemenu.add_command(label="Save File", command=self.save_file, accelerator="Ctrl+S")
+      filemenu.add_command(label="Save File As...", command=self.save_file_as)
+      settingsmenu.add_command(label="Swap Theme", command=self.swap_themes, accelerator="Ctrl+T")
     self.config(menu=self.menubar)
     
     # the text editor
@@ -107,14 +117,18 @@ class UnderwoodWriter(Tkinter.Tk):
     self.editortext.bind("<ButtonRelease-1>", self.editor_click)
     self.editortext.bind("<ButtonRelease-2>", self.editor_click)
     self.editortext.bind("<ButtonRelease-3>", self.editor_click)
-    self.editortext.bind("<Control-s>", self.save_file)
-    self.editortext.bind("<Command-s>", self.save_file)
-    self.editortext.bind("<Control-n>", self.new_file)
-    self.editortext.bind("<Command-n>", self.new_file)
-    self.editortext.bind("<Control-o>", self.load_file)
-    self.editortext.bind("<Command-o>", self.load_file)
-    self.editortext.bind("<Control-t>", self.swap_themes)
-    self.editortext.bind("<Command-t>", self.swap_themes)
+    if sys.platform == 'darwin':
+      # mac key bindings
+      self.editortext.bind("<Command-s>", self.save_file)
+      self.editortext.bind("<Command-n>", self.new_file)
+      self.editortext.bind("<Command-o>", self.load_file)
+      self.editortext.bind("<Command-t>", self.swap_themes)
+    else:
+      # windows/linux key bindings
+      self.editortext.bind("<Control-s>", self.save_file)
+      self.editortext.bind("<Control-n>", self.new_file)
+      self.editortext.bind("<Control-o>", self.load_file)
+      self.editortext.bind("<Control-t>", self.swap_themes)
     
     # status label
     self.labelVariable = Tkinter.StringVar()
