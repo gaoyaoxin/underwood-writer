@@ -84,18 +84,28 @@ class UnderwoodWriter(Tkinter.Tk):
     self.menubar.add_cascade(label="Settings", menu=settingsmenu)
     if sys.platform == 'darwin':
       # mac stuff here
-      filemenu.add_command(label="New File...", command=self.new_file, accelerator="Command+N")
-      filemenu.add_command(label="Open File...", command=self.load_file, accelerator="Command+O")
-      filemenu.add_command(label="Save File", command=self.save_file, accelerator="Command+S")
-      filemenu.add_command(label="Save File As...", command=self.save_file_as)
-      settingsmenu.add_command(label="Swap Theme", command=self.swap_themes, accelerator="Command+T")
+      filemenu.add_command(label="New File...", 
+           command=self.new_file, accelerator="Command+N")
+      filemenu.add_command(label="Open File...", 
+           command=self.load_file, accelerator="Command+O")
+      filemenu.add_command(label="Save File", 
+           command=self.save_file, accelerator="Command+S")
+      filemenu.add_command(label="Save File As...", 
+           command=self.save_file_as)
+      settingsmenu.add_command(label="Swap Theme", 
+           command=self.swap_themes, accelerator="Command+T")
     else:
       # windows/linux stuff here
-      filemenu.add_command(label="New File...", command=self.new_file, accelerator="Ctrl+N")
-      filemenu.add_command(label="Open File...", command=self.load_file, accelerator="Ctrl+O")
-      filemenu.add_command(label="Save File", command=self.save_file, accelerator="Ctrl+S")
-      filemenu.add_command(label="Save File As...", command=self.save_file_as)
-      settingsmenu.add_command(label="Swap Theme", command=self.swap_themes, accelerator="Ctrl+T")
+      filemenu.add_command(label="New File...", 
+           command=self.new_file, accelerator="Ctrl+N")
+      filemenu.add_command(label="Open File...", 
+           command=self.load_file, accelerator="Ctrl+O")
+      filemenu.add_command(label="Save File", 
+           command=self.save_file, accelerator="Ctrl+S")
+      filemenu.add_command(label="Save File As...", 
+           command=self.save_file_as)
+      settingsmenu.add_command(label="Swap Theme", 
+           command=self.swap_themes, accelerator="Ctrl+T")
     self.config(menu=self.menubar)
     
     # the text editor
@@ -129,6 +139,9 @@ class UnderwoodWriter(Tkinter.Tk):
       self.editortext.bind("<Control-n>", self.new_file)
       self.editortext.bind("<Control-o>", self.load_file)
       self.editortext.bind("<Control-t>", self.swap_themes)
+    
+    # protocol handler
+    self.protocol("WM_DELETE_WINDOW", self.exit_gracefully)
     
     # status label
     self.labelVariable = Tkinter.StringVar()
@@ -178,6 +191,10 @@ class UnderwoodWriter(Tkinter.Tk):
                                              row, column, deletable)
     self.labelVariable.set(slabel)
   #@+node:peckj.20130327100701.1472: *3* helpers
+  #@+node:peckj.20130328082131.1985: *4* exit_gracefully
+  def exit_gracefully(self):
+    self.save_unsaved_changes()
+    self.destroy()
   #@+node:peckj.20130327100701.1482: *4* update_title
   def update_title(self):
     titlestring = 'Underwood Writer'
@@ -231,8 +248,68 @@ class UnderwoodWriter(Tkinter.Tk):
       foreground=self.theme['statusbar_fg']
     )
   #@+node:peckj.20130327100701.1477: *3* file operations
+  #@+node:peckj.20130328082131.1983: *4* save_unsaved_changes
+  def save_unsaved_changes(self):
+    # modal dialog
+    #@+<< dialog class >>
+    #@+node:peckj.20130328082131.1984: *5* << dialog class >>
+    class SaveUnsavedChangesDialog(Tkinter.Toplevel):
+      def __init__(self, parent):
+        Tkinter.Toplevel.__init__(self, parent)
+        self.transient(parent)
+        self.title("WARNING: Unsaved Changes")
+        self.parent = parent
+        self.initialize()
+        self.set_up_icon()
+        self.grab_set()
+        self.protocol("WM_DELETE_WINDOW", self.discardbuttonclick)
+        self.geometry("+%d+%d" % (parent.winfo_rootx()+50,
+                                  parent.winfo_rooty()+50))
+        self.savebutton.focus_set()
+        self.wait_window(self)
+      
+      def initialize(self):
+        self.grid()
+        t = "WARNING: You have unsaved changes!\n" + \
+            "Click Save to save them, or Discard to discard them."
+        self.label = Tkinter.Label(self, text=t, padx=10, pady=10)
+        self.label.grid(row=0, columnspan=4, sticky='NSEW')
+        self.savebutton = Tkinter.Button(self, text="Save", 
+                          command=self.savebuttonclick,
+                          default=Tkinter.ACTIVE)
+        self.discardbutton = Tkinter.Button(self, text="Discard",
+                             command=self.discardbuttonclick)
+        self.savebutton.grid(row=1, column=1, sticky='EW', pady=5)
+        self.discardbutton.grid(row=1, column=2, sticky='EW', pady=5)
+        self.resizable(False, False)
+        
+      def set_up_icon(self):
+        iconName = os.path.join(os.getcwd(), 'underwood.gif')
+        try:
+          img = Tkinter.PhotoImage(file=iconName)
+          self.tk.call('wm', 'iconphoto', self._w, img)
+        except Exception as e:
+          pass # error loading icon, but it's not a deal breaker
+      
+      def savebuttonclick(self):
+        self.parent.save_file()
+        self.close()
+        
+      def discardbuttonclick(self):
+        self.close()
+        
+      def close(self):
+        self.parent.focus_on_editor()
+        self.destroy()
+    #@-<< dialog class >>
+    
+    if self.unsaved:
+      # pop up a modal alert
+      d = SaveUnsavedChangesDialog(self)
+      # save if they choose yes
   #@+node:peckj.20130327100701.1494: *4* new_file
   def new_file(self, event=None):
+    self.save_unsaved_changes()
     self.file_opt['title'] = 'New file...'
     self.filename = tkFileDialog.asksaveasfilename(**self.file_opt)
     self.editortext.delete(1.0, Tkinter.END)
@@ -240,6 +317,7 @@ class UnderwoodWriter(Tkinter.Tk):
     self.update_title()
   #@+node:peckj.20130327100701.1478: *4* load_file
   def load_file(self, event=None):
+    self.save_unsaved_changes()
     self.file_opt['title'] = 'Load file...'
     f = tkFileDialog.askopenfile(mode='rb', **self.file_opt)
     self.editortext.delete(1.0, Tkinter.END)
