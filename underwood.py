@@ -60,7 +60,7 @@ class UnderwoodWriter(Tkinter.Tk):
     # set up the theme dictionaries
     self.lighttheme = {
       'editor_fg': 'gray23',
-      'editor_bg': 'seashell2',
+      'editor_bg': 'ghost white',
       'editor_insert': 'gray11',
       'statusbar_fg': 'gray23',
       'statusbar_bg': 'ivory3'
