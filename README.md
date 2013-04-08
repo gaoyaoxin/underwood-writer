@@ -45,7 +45,7 @@ a matter of running `underwood.py`.
 
 ### Windows
 Windows users have it even easier - Underwood Writer is available as a
-binary package!  Download it [here](blah), extract it all to a single
+binary package!  Download it [here](https://github.com/gatesphere/underwood-writer/raw/winbinaries/underwood_win32.zip), extract it all to a single
 directory, and double-click `underwood.exe`.
 
 License
